@@ -1,0 +1,93 @@
+/* 전역 레이아웃 및 다크 테마 */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --border: #2e2e2e;
+    --text: #e0e0e0;
+    --text-muted: #888;
+    --accent: #7c3aed;
+    --accent-hover: #6d28d9;
+    --danger: #dc2626;
+    --success: #16a34a;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', sans-serif;
+    min-height: 100vh;
+}
+
+/* 상단 헤더 */
+.site-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.5rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.btn-auth {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 0.4rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+
+.btn-auth:hover { background: var(--accent-hover); }
+
+.btn-back {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.875rem;
+}
+
+.btn-back:hover { color: var(--text); }
+
+/* 티어 배지 */
+.tier-badge {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-weight: 600;
+}
+
+.tier-member { background: #fbbf24; color: #000; }
+.tier-subscriber { background: #3b82f6; color: #fff; }
+.tier-none { background: var(--border); color: var(--text-muted); }
+
+/* 공통 배지 */
+.badge {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.badge.early { background: #fbbf24; color: #000; }
+.badge.locked { background: var(--border); color: var(--text-muted); }
+
+/* 로딩/에러 */
+.loading, .error { text-align: center; padding: 3rem; color: var(--text-muted); }
+.error { color: var(--danger); }

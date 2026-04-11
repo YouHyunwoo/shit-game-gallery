@@ -1,0 +1,81 @@
+/* 갤러리 그리드 및 게임 카드 */
+.gallery-main { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
+
+.gallery-info {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.25rem;
+}
+
+/* 게임 카드 */
+.game-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+}
+
+.game-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent);
+}
+
+.game-card.locked {
+    cursor: default;
+    opacity: 0.55;
+}
+
+.game-card.locked:hover {
+    transform: none;
+    border-color: var(--border);
+}
+
+.game-card img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    display: block;
+    background: var(--border);
+}
+
+.card-info {
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.card-info h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card-info p {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* 반응형 */
+@media (max-width: 480px) {
+    .game-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+    .gallery-main { padding: 0.75rem; }
+}

@@ -1,0 +1,20 @@
+# 환경 변수 (절대 커밋 금지)
+.env
+.env.local
+.env.*
+
+# Firebase Admin SDK 키
+serviceAccountKey.json
+
+# Vercel
+.vercel/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 에디터
+.vscode/
+*.swp
+
+CLAUDE.md

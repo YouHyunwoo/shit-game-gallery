@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShitGame Gallery</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/gallery.css">
+</head>
+<body>
+    <header class="site-header">
+        <h1 class="logo">ShitGame Gallery</h1>
+        <div class="header-right">
+            <span id="tier-badge" class="tier-badge"></span>
+            <button id="btn-auth" class="btn-auth">Google 로그인</button>
+        </div>
+    </header>
+
+    <main class="gallery-main">
+        <section class="gallery-info" id="gallery-info" hidden>
+            <p id="info-text"></p>
+        </section>
+        <div id="game-grid" class="game-grid">
+            <div class="loading">게임 목록 불러오는 중...</div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { signIn, signOutUser, onAuthChange }
+            from './scripts/auth/google-auth.js';
+        import { ensureUserTier }
+            from './scripts/subscription/sub-check.js';
+        import { fetchGames, filterByTier, renderGameList }
+            from './scripts/gallery/game-list.js';
+
+        const btnAuth = document.getElementById('btn-auth');
+        const tierBadge = document.getElementById('tier-badge');
+        const infoText = document.getElementById('info-text');
+        const galleryInfo = document.getElementById('gallery-info');
+        const grid = document.getElementById('game-grid');
+
+        const TierLabel = {
+            member: '멤버십 구독자',
+            subscriber: '일반 구독자',
+            none: '비구독자',
+        };
+
+        let allGames = [];
+
+        async function loadGallery(user, accessToken) {
+            try {
+                allGames = await fetchGames();
+                let tier = 'none';
+
+                if (user && accessToken) {
+                    tier = await ensureUserTier(user.uid, accessToken);
+                }
+
+                const accessible = filterByTier(allGames, tier);
+                const accessibleIds = accessible.map(g => g.id);
+
+                tierBadge.textContent = TierLabel[tier];
+                tierBadge.className = `tier-badge tier-${tier}`;
+
+                if (tier === 'none') {
+                    galleryInfo.hidden = false;
+                    infoText.textContent =
+                        '이번 주 무료 게임 ' + accessible.length + '개. '
+                        + '구독 시 전체 게임 이용 가능.';
+                }
+
+                renderGameList(grid, allGames, accessibleIds);
+            } catch (err) {
+                grid.innerHTML = '<p class="error">게임 로드 실패</p>';
+                console.error(err);
+            }
+        }
+
+        let currentAccessToken = null;
+
+        onAuthChange(async user => {
+            if (user) {
+                btnAuth.textContent = '로그아웃';
+                await loadGallery(user, currentAccessToken);
+            } else {
+                btnAuth.textContent = 'Google 로그인';
+                tierBadge.textContent = '';
+                currentAccessToken = null;
+                await loadGallery(null, null);
+            }
+        });
+
+        btnAuth.addEventListener('click', async () => {
+            try {
+                if (btnAuth.textContent === '로그아웃') {
+                    await signOutUser();
+                } else {
+                    const { user, accessToken } = await signIn();
+                    currentAccessToken = accessToken;
+                    await loadGallery(user, accessToken);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        });
+    </script>
+</body>
+</html>

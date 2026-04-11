@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 - ShitGame Gallery</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/admin.css">
+</head>
+<body>
+    <header class="site-header">
+        <a href="/" class="btn-back">← 갤러리로</a>
+        <h1>관리자 페이지</h1>
+        <button id="btn-auth" class="btn-auth">Google 로그인</button>
+    </header>
+
+    <main class="admin-main">
+        <div id="admin-gate" class="admin-gate">
+            <p>관리자 계정으로 로그인하세요.</p>
+        </div>
+
+        <section id="upload-section" class="upload-section" hidden>
+            <h2>게임 업로드</h2>
+            <form id="upload-form" class="upload-form">
+                <label>게임 제목 *
+                    <input type="text" name="title" required>
+                </label>
+                <label>게임 설명 *
+                    <textarea name="description" rows="3" required></textarea>
+                </label>
+                <label>게임 타입 *
+                    <select name="type" required>
+                        <option value="html">HTML/JS</option>
+                        <option value="unity">Unity WebGL</option>
+                    </select>
+                </label>
+                <label>태그 (쉼표 구분)
+                    <input type="text" name="tags"
+                        placeholder="액션, 퍼즐, 2D">
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" name="earlyAccess">
+                    얼리 액세스 (멤버십 전용)
+                </label>
+                <label>썸네일 이미지 *
+                    <input type="file" name="thumbnail"
+                        accept="image/*" required>
+                    <img id="thumbnail-preview" class="thumbnail-preview"
+                        hidden alt="미리보기">
+                </label>
+                <label>게임 파일 (ZIP) *
+                    <input type="file" name="gameFile"
+                        accept=".zip" required>
+                </label>
+                <div class="progress-group" id="progress-group" hidden>
+                    <p>썸네일: <progress id="prog-thumb" max="100"></progress>
+                    </p>
+                    <p>게임 파일: <progress id="prog-game" max="100"></progress>
+                    </p>
+                </div>
+                <button type="submit" id="btn-submit">업로드</button>
+                <p id="upload-result" class="upload-result"></p>
+            </form>
+        </section>
+    </main>
+
+    <script type="module">
+        import { signIn, signOutUser, onAuthChange, getCurrentUser }
+            from './scripts/auth/google-auth.js';
+        import { handleUploadSubmit }
+            from './scripts/admin/game-upload.js';
+
+        const AdminUid = window.__ENV__?.ADMIN_UID;
+        const btnAuth = document.getElementById('btn-auth');
+        const gate = document.getElementById('admin-gate');
+        const section = document.getElementById('upload-section');
+        const form = document.getElementById('upload-form');
+        const result = document.getElementById('upload-result');
+        const thumbInput = form.querySelector('[name="thumbnail"]');
+        const thumbPreview = document.getElementById('thumbnail-preview');
+        const progGroup = document.getElementById('progress-group');
+
+        // 썸네일 미리보기
+        thumbInput.addEventListener('change', () => {
+            const file = thumbInput.files[0];
+            if (!file) return;
+            thumbPreview.src = URL.createObjectURL(file);
+            thumbPreview.hidden = false;
+        });
+
+        onAuthChange(user => {
+            if (user && user.uid === AdminUid) {
+                btnAuth.textContent = '로그아웃';
+                gate.hidden = true;
+                section.hidden = false;
+            } else {
+                btnAuth.textContent = 'Google 로그인';
+                gate.hidden = false;
+                section.hidden = true;
+                if (user) gate.innerHTML =
+                    '<p class="error">관리자 계정이 아닙니다.</p>';
+            }
+        });
+
+        btnAuth.addEventListener('click', async () => {
+            try {
+                if (getCurrentUser()) {
+                    await signOutUser();
+                } else {
+                    await signIn();
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        form.addEventListener('submit', async e => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit');
+            btn.disabled = true;
+            progGroup.hidden = false;
+            result.textContent = '';
+
+            const fd = new FormData(form);
+            try {
+                const gameId = await handleUploadSubmit(
+                    {
+                        title: fd.get('title'),
+                        description: fd.get('description'),
+                        type: fd.get('type'),
+                        earlyAccess: fd.get('earlyAccess'),
+                        tags: fd.get('tags'),
+                        thumbnailFile: fd.get('thumbnail'),
+                        gameFile: fd.get('gameFile'),
+                    },
+                    (target, pct) => {
+                        const prog = target === 'thumbnail'
+                            ? document.getElementById('prog-thumb')
+                            : document.getElementById('prog-game');
+                        prog.value = pct;
+                    }
+                );
+                result.textContent = `업로드 완료! ID: ${gameId}`;
+                result.className = 'upload-result success';
+                form.reset();
+                thumbPreview.hidden = true;
+            } catch (err) {
+                result.textContent = `오류: ${err.message}`;
+                result.className = 'upload-result error';
+            } finally {
+                btn.disabled = false;
+                progGroup.hidden = true;
+            }
+        });
+    </script>
+</body>
+</html>
