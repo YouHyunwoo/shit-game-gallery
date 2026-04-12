@@ -9,13 +9,21 @@ serviceAccountKey.json
 # Vercel
 .vercel/
 
+# Node.js
+node_modules/
+npm-debug.log*
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
 # OS
 .DS_Store
 Thumbs.db
 
 # 에디터
 .vscode/
+.idea/
 *.swp
-
-CLAUDE.md
-docs/
