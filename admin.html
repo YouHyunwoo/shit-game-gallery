@@ -70,7 +70,6 @@
         import { handleUploadSubmit }
             from './scripts/admin/game-upload.js';
 
-        const AdminUid = window.__ENV__?.ADMIN_UID;
         const btnAuth = document.getElementById('btn-auth');
         const gate = document.getElementById('admin-gate');
         const section = document.getElementById('upload-section');
@@ -80,6 +79,8 @@
         const thumbPreview = document.getElementById('thumbnail-preview');
         const progGroup = document.getElementById('progress-group');
 
+        let currentIdToken = null;
+
         // 썸네일 미리보기
         thumbInput.addEventListener('change', () => {
             const file = thumbInput.files[0];
@@ -88,17 +89,40 @@
             thumbPreview.hidden = false;
         });
 
-        onAuthChange(user => {
-            if (user && user.uid === AdminUid) {
-                btnAuth.textContent = '로그아웃';
-                gate.hidden = true;
-                section.hidden = false;
+        // API로 관리자 여부 확인
+        async function checkAdmin(user) {
+            const idToken = await user.getIdToken();
+            const res = await fetch('/api/game-upload', {
+                headers: { 'Authorization': `Bearer ${idToken}` },
+            });
+            const { isAdmin } = await res.json();
+            return { idToken, isAdmin };
+        }
+
+        onAuthChange(async user => {
+            if (user) {
+                try {
+                    const { idToken, isAdmin } = await checkAdmin(user);
+                    btnAuth.textContent = '로그아웃';
+                    if (isAdmin) {
+                        currentIdToken = idToken;
+                        gate.hidden = true;
+                        section.hidden = false;
+                    } else {
+                        gate.hidden = false;
+                        section.hidden = true;
+                        gate.innerHTML =
+                            '<p class="error">관리자 계정이 아닙니다.</p>';
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
             } else {
                 btnAuth.textContent = 'Google 로그인';
+                currentIdToken = null;
                 gate.hidden = false;
+                gate.innerHTML = '<p>관리자 계정으로 로그인하세요.</p>';
                 section.hidden = true;
-                if (user) gate.innerHTML =
-                    '<p class="error">관리자 계정이 아닙니다.</p>';
             }
         });
 
@@ -123,6 +147,8 @@
 
             const fd = new FormData(form);
             try {
+                // 업로드 전 토큰 갱신 (만료 방지)
+                currentIdToken = await getCurrentUser().getIdToken();
                 const gameId = await handleUploadSubmit(
                     {
                         title: fd.get('title'),
@@ -138,7 +164,8 @@
                             ? document.getElementById('prog-thumb')
                             : document.getElementById('prog-game');
                         prog.value = pct;
-                    }
+                    },
+                    currentIdToken
                 );
                 result.textContent = `업로드 완료! ID: ${gameId}`;
                 result.className = 'upload-result success';

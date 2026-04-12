@@ -28,7 +28,7 @@
     <script type="module">
         import { signIn, signOutUser, onAuthChange }
             from './scripts/auth/google-auth.js';
-        import { ensureUserTier }
+        import { ensureUserTier, getUserTier }
             from './scripts/subscription/sub-check.js';
         import { fetchGames, filterByTier, renderGameList }
             from './scripts/gallery/game-list.js';
@@ -52,8 +52,14 @@
                 allGames = await fetchGames();
                 let tier = 'none';
 
-                if (user && accessToken) {
-                    tier = await ensureUserTier(user.uid, accessToken);
+                if (user) {
+                    if (accessToken) {
+                        // 로그인 직후: YouTube API로 티어 갱신
+                        tier = await ensureUserTier(user.uid, accessToken);
+                    } else {
+                        // 새로고침: Firestore 캐시 티어 사용
+                        tier = await getUserTier(user.uid) || 'none';
+                    }
                 }
 
                 const accessible = filterByTier(allGames, tier);

@@ -22,6 +22,12 @@ async function verifyAdmin(req) {
 }
 
 export default async function handler(req, res) {
+    // 관리자 여부 확인 (admin.html 진입 시 호출)
+    if (req.method === 'GET') {
+        const isAdmin = await verifyAdmin(req);
+        return res.status(200).json({ isAdmin });
+    }
+
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }

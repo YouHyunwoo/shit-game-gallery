@@ -32,8 +32,8 @@ export function uploadFile(path, file, onProgress) {
     });
 }
 
-// 업로드 폼 제출 처리
-export async function handleUploadSubmit(formData, onProgress) {
+// 업로드 폼 제출 처리 (idToken: Firebase ID 토큰)
+export async function handleUploadSubmit(formData, onProgress, idToken) {
     const { title, description, type, earlyAccess,
         tags, thumbnailFile, gameFile } = formData;
 
@@ -58,8 +58,10 @@ export async function handleUploadSubmit(formData, onProgress) {
     // 메타데이터 Firestore 등록 (API 경유)
     const res = await fetch('/api/game-upload', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`,
+        },
         body: JSON.stringify({
             gameId, title, description, type,
             earlyAccess: !!earlyAccess,
