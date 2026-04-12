@@ -1,6 +1,5 @@
 // YouTube 구독/멤버십 확인 서버리스 함수
 const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID;
-const YT_API_KEY = process.env.YOUTUBE_API_KEY;
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -26,7 +25,7 @@ async function checkYoutubeTier(accessToken) {
     try {
         const memberRes = await fetch(
             `https://www.googleapis.com/youtube/v3/members`
-            + `?part=snippet&mode=listMembers&key=${YT_API_KEY}`,
+            + `?part=snippet&mode=listMembers`,
             { headers: { Authorization: `Bearer ${accessToken}` } }
         );
         if (memberRes.ok) {
@@ -35,11 +34,10 @@ async function checkYoutubeTier(accessToken) {
         }
     } catch (_) { /* 멤버십 API 미지원 채널은 스킵 */ }
 
-    // 일반 구독 확인
+    // 일반 구독 확인 (OAuth 전용, API key 혼용 금지)
     const subRes = await fetch(
         `https://www.googleapis.com/youtube/v3/subscriptions`
-        + `?part=snippet&mine=true&forChannelId=${CHANNEL_ID}`
-        + `&key=${YT_API_KEY}`,
+        + `?part=snippet&mine=true&forChannelId=${CHANNEL_ID}`,
         { headers: { Authorization: `Bearer ${accessToken}` } }
     );
 

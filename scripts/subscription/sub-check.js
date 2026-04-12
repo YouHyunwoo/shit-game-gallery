@@ -58,9 +58,9 @@ export async function refreshUserTier(uid, accessToken) {
     }
 }
 
-// 캐시 우선 조회, 없으면 API 호출
+// 캐시 우선 조회, 없으면 API 호출 (none은 캐시 미신뢰)
 export async function ensureUserTier(uid, accessToken) {
     const cached = await getUserTier(uid);
-    if (cached) return cached;
+    if (cached && cached !== 'none') return cached;
     return refreshUserTier(uid, accessToken);
 }
